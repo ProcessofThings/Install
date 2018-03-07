@@ -1,0 +1,157 @@
+#!/bin/bash
+IPFSVER="v1.5.2"
+USER="node"
+HOME="/home"
+FILE="ipfs-update_"$IPFSVER"_linux-amd64.tar.gz"
+SERVICEHASH="QmV4Jdtfa1rSxKFxSKoj3bTNhbtK56dx4frUsjmuU1UPMg"
+NODEKEY="WhHe893hh29haSAKhd9fhSJhksd92hkdfhksdgfshgdfkls"
+PERLVER="5.24.3"
+
+
+
+sudo apt-get install curl libperl-dev wget build-essential
+
+if ! [ -x "$(command -v ipfs)" ]; then
+   if ! [ -x "$(command -v ipfs-update)" ]; then
+	wget https://dist.ipfs.io/ipfs-update/$IPFSVER/$FILE
+	tar -zxvf $FILE
+	cd ipfs-update
+	sh install.sh
+	cd ..
+   else
+	echo "IPFS Update Installed - Skipping"
+   fi
+fi
+
+if ! [ -x "$(command -v ipfs)" ]; then
+	echo "Installing IPFS" 
+	ipfs-update install latest
+else 
+	echo "IPFS Installed - Skipping"
+fi 
+
+if ! id -u $USER > /dev/null 2>&1; then
+    sudo adduser --disabled-login --q --gecos "" $USER	
+else 
+	echo "IPFS User Detected - Skipping"
+fi
+
+if ! [ -d "$HOME/$USER/.ipfs" ]; then
+    echo "Init IPFS"
+    su - $USER -c 'ipfs init'
+else 
+	echo "IPFS Already Initialsed - Skipping"
+fi
+
+
+if ! pgrep -x "ipfs" > /dev/null; then
+	echo "Starting IPFS Daemon"
+	su - $USER -c 'ipfs daemon > /dev/null 2>&1 &'
+	sleep 3
+	IPFSID=`pgrep -x "ipfs"`
+else 
+	echo "IPFS Already Running"
+fi
+
+if ! [ -f "/etc/systemd/system/ipfs.service" ]; then
+	echo "Setting Up Service"
+	su - $USER -c "ipfs swarm connect /ip4/134.119.187.154/tcp/4001/ipfs/Qma6Mp7Eubx4FqGA1Jq4BGuKpojoZ7HCaxt4m1hA7jPzoA"
+	## Stores SERVICE file locally
+	su - $USER -c "ipfs pin add $SERVICEHASH --progress"
+	if ! [ -d "tmp" ]; then
+		mkdir tmp
+	fi
+	if ! [ -f "tmp/ipfs.service" ]; then
+		wget http://127.0.0.1:8080/ipfs/QmV4Jdtfa1rSxKFxSKoj3bTNhbtK56dx4frUsjmuU1UPMg/ipfs.service -P tmp/
+	fi
+	if [ -f "tmp/ipfs.service" ]; then
+		sed -i "s/USERCHANGEME/$USER/g" tmp/ipfs.service
+		cp tmp/ipfs.service /etc/systemd/system/ipfs.service
+	fi
+	rm -rf tmp/
+fi
+
+if [ $IPFSID > 0 ]; then 
+   if pgrep -x "ipfs" > /dev/null; then
+	echo "Stop IPFS daemon"
+	kill -9 $IPFSID
+	while pgrep -x "ipfs" > /dev/null; do sleep 1; done
+   fi
+fi
+
+if ! pgrep -x "ipfs" > /dev/null; then
+	systemctl daemon-reload
+	echo "Enable IPFS on boot"
+	systemctl enable ipfs.service
+	echo "Starting IPFS Service"
+	service ipfs start
+	sleep 3
+	echo "IPFS Started"
+else 
+	echo "IPFS Running"
+fi
+
+if ! [ -x "$(command -v multichaind)" ]; then
+if ! [ -f "multichain-latest.tar.gz" ]; then
+	echo "Pinning Blockchain"
+	su - $USER -c "ipfs pin add QmYvVUXXrcLorqV7aq9nBeFZGgm1QXHhktWoez4ATzDJmS --progress"
+	echo "Downloading Multichain"
+	wget http://127.0.0.1:8080/ipfs/QmYvVUXXrcLorqV7aq9nBeFZGgm1QXHhktWoez4ATzDJmS/multichain-latest.tar.gz
+	mkdir tmp
+	tar -zxvf multichain-latest.tar.gz -C tmp --strip-components=1
+	cd tmp
+	mv * /usr/local/bin/
+	cd ..
+	rm -rf tmp/
+	rm multichain-latest.tar.gz
+fi
+else 
+	echo "Blockchain Installed"
+fi
+
+
+if ! [ -d "$HOME/$USER/perl5" ]; then
+	echo "Setting Up Perlbrew"
+	su - $USER -c "sed -i 's/\*)\sreturn;;/#&/g' .bashrc"
+	su - $USER -c "curl -L https://install.perlbrew.pl | bash"
+	su - $USER -c 'echo "source ~/perl5/perlbrew/etc/bashrc" >> ~/.bashrc'
+	su - $USER -c 'perlbrew install perl-5.24.3 --thread --64int --64all'
+else
+	echo "Perlbrew Installed - Skipping"
+fi
+
+if ! [ -d "$HOME/$USER/perl5/perlbrew/perls/perl-$PERLVER" ]; then
+	echo "Installing Perl $PERLVER"
+	su - $USER -c "perlbrew install perl-$PERLVER --thread --64int --64all"
+else
+	echo "Perl $PERLVER Installed - Skipping"
+fi
+
+
+PERLINST=`su - $USER -c "perl -e 'print substr($^V, 1)'"`
+if ! [ $PERLINST == $PERLVER ]; then
+	echo "Switching Perl Verion $PERLVER" 
+	su - $USER -c "perlbrew switch perl-$PERLVER"
+else
+	echo "Current Perl Version $PERLINST - Skipping"
+fi
+
+CPANM=`su - $USER -c "command -v cpanm"`
+if ! [ -f "$CPANM" ]; then
+	echo "Installing CPANM"
+	su - $USER -c "curl -L https://cpanmin.us | perl - App::cpanminus"
+else
+	echo "cpanm Installed - Skipping"
+fi
+
+MOJO=`su - $USER -c "command -v mojo"`
+if ! [ -f "$MOJO" ]; then
+	echo "Installing Mojolicious"
+	su - $USER -c "cpanm Mojolicious"
+else
+	echo "Mojolicious Installed - Skipping"
+fi
+
+
+
+
