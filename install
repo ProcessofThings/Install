@@ -8,8 +8,8 @@ NODEKEY="WhHe893hh29haSAKhd9fhSJhksd92hkdfhksdgfshgdfkls"
 PERLVER="5.24.3"
 
 
-
-sudo apt-get install curl libperl-dev wget build-essential
+## Install basic requirements (-y install without asking)
+sudo apt-get -y install curl libperl-dev wget build-essential
 
 if ! [ -x "$(command -v ipfs)" ]; then
    if ! [ -x "$(command -v ipfs-update)" ]; then
