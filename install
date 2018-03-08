@@ -149,6 +149,7 @@ fi
 if ! [ -d "$HOME/$USER/pot_node" ]; then
 	echo "Installing PoT Node"
 	su - $USER -c "ipfs pin add $POTSERVICEHASH --progress"
+	su - $USER -c "mkdir run"
         if ! [ -d "tmp" ]; then
                 mkdir tmp
         fi
