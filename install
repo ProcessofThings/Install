@@ -5,6 +5,7 @@ HOME="/home"
 FILE="ipfs-update_"$IPFSVER"_linux-amd64.tar.gz"
 SERVICEHASH="QmV4Jdtfa1rSxKFxSKoj3bTNhbtK56dx4frUsjmuU1UPMg"
 NODEKEY="WhHe893hh29haSAKhd9fhSJhksd92hkdfhksdgfshgdfkls"
+POTSERVICEHASH="QmTQJYsRtH5HNvRTv1Kn3fDifrXWD9NjUhDXgCTXsPdDnU"
 PERLVER="5.24.3"
 
 
@@ -147,6 +148,21 @@ fi
 
 if ! [ -d "$HOME/$USER/pot_node" ]; then
 	echo "Installing PoT Node"
+	su - $USER -c "ipfs pin add $POTSERVICEHASH --progress"
+        if ! [ -d "tmp" ]; then
+                mkdir tmp
+        fi
+        if ! [ -f "tmp/pot_node.service" ]; then
+                wget http://127.0.0.1:8080/ipfs/$POTSERVICEHASH/pot_node.service -P tmp/
+        fi
+        if [ -f "tmp/pot_node.service" ]; then
+		WHICH=`su - $USER -c "command -v which hypnotoad"`
+		sed -i "s/PATH/$HOME\/$USER\//g" tmp/pot_node.service
+		sed -i "s/WHICH/$WHICH\//g" tmp/pot_node.service
+                cp tmp/pot_node.service /etc/systemd/system/pot_node.service
+		systemctl --system daemon-reload
+        fi
+        rm -rf tmp/
 	su - $USER -c "git clone https://github.com/ProcessofThings/pot_node.git"
 	su - $USER -c "cd pot_node; cpanm --installdeps ." 
 else
