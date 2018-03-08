@@ -2,6 +2,7 @@
 IPFSVER="v1.5.2"
 USER="node"
 HOME="/home"
+PATH=$HOME"/"$USER"/"
 FILE="ipfs-update_"$IPFSVER"_linux-amd64.tar.gz"
 SERVICEHASH="QmV4Jdtfa1rSxKFxSKoj3bTNhbtK56dx4frUsjmuU1UPMg"
 NODEKEY="WhHe893hh29haSAKhd9fhSJhksd92hkdfhksdgfshgdfkls"
@@ -158,7 +159,7 @@ if ! [ -d "$HOME/$USER/pot_node" ]; then
         fi
         if [ -f "tmp/pot_node.service" ]; then
 		WHICH=`su - $USER -c "command -v which hypnotoad"`
-		sed -i "s/PATH/$HOME\/$USER\//g" tmp/pot_node.service
+		sed -i "s/PATH/$PATH/g" tmp/pot_node.service
 		sed -i "s/WHICH/$WHICH\//g" tmp/pot_node.service
                 cp tmp/pot_node.service /etc/systemd/system/pot_node.service
 		systemctl --system daemon-reload
