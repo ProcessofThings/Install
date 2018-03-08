@@ -144,14 +144,12 @@ else
 	echo "cpanm Installed - Skipping"
 fi
 
-MOJO=`su - $USER -c "command -v mojo"`
-if ! [ -f "$MOJO" ]; then
-	echo "Installing Mojolicious"
-	su - $USER -c "cpanm Mojolicious"
+
+if ! [ -d "$HOME/$USER/pot_node" ]; then
+	echo "Installing PoT Node"
+	su - $USER -c "git clone https://github.com/ProcessofThings/pot_node.git"
+	su - $USER -c "cd pot_node; cpanm --installdeps ." 
 else
-	echo "Mojolicious Installed - Skipping"
+	echo "PoT Node Installed - Skipping"
 fi
-
-
-
 
