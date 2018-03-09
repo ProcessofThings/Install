@@ -11,7 +11,8 @@ PERLVER="5.24.3"
 
 
 ## Install basic requirements (-y install without asking)
-sudo apt-get -y install curl libperl-dev wget build-essential
+sudo apt-get update
+sudo apt-get -y install curl libperl-dev wget build-essential redis-server
 
 if ! [ -x "$(command -v ipfs)" ]; then
    if ! [ -x "$(command -v ipfs-update)" ]; then
