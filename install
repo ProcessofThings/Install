@@ -160,28 +160,6 @@ else
         echo "run Folder Exists - Skipping"
 fi
 
-if ! [ -f "/etc/systemd/system/pot_node.service" ]; then
-	echo "Setup PoT Node Service"
-	su - $USER -c "ipfs pin add $POTSERVICEHASH --progress"
-        if ! [ -d "tmp" ]; then
-                mkdir tmp
-        fi
-        if ! [ -f "tmp/pot_node.service" ]; then
-                wget http://127.0.0.1:8080/ipfs/$POTSERVICEHASH/pot_node.service -P tmp/
-        fi
-        if [ -f "tmp/pot_node.service" ]; then
-		WHICH=`su - $USER -c "command -v hypnotoad"`
-		echo "Hypnotoad : $WHICH"
-		sed -i "s|PATH|$HOMEPATH|g" tmp/pot_node.service
-		sed -i "s|WHICH|$WHICH|g" tmp/pot_node.service
-                cp tmp/pot_node.service /etc/systemd/system/pot_node.service
-		systemctl --system daemon-reload
-        fi
-        rm -rf tmp/
-else
-	echo "PoT Node Sevice Installed - Skipping"
-fi
-
 if ! [ -d "$HOME/$USER/pot_node" ]; then
         echo "Installing PoT Node"
         su - $USER -c "git clone https://github.com/ProcessofThings/pot_node.git"
@@ -189,6 +167,30 @@ if ! [ -d "$HOME/$USER/pot_node" ]; then
 else
         echo "PoT Node Installed - Skipping"
 fi
+
+if ! [ -f "/etc/systemd/system/pot_node.service" ]; then
+        echo "Setup PoT Node Service"
+        su - $USER -c "ipfs pin add $POTSERVICEHASH --progress"
+        if ! [ -d "tmp" ]; then
+                mkdir tmp
+        fi
+        if ! [ -f "tmp/pot_node.service" ]; then
+                wget http://127.0.0.1:8080/ipfs/$POTSERVICEHASH/pot_node.service -P tmp/
+        fi
+        if [ -f "tmp/pot_node.service" ]; then
+                WHICH=`su - $USER -c "command -v hypnotoad"`
+                echo "Hypnotoad : $WHICH"
+                sed -i "s|PATH|$HOMEPATH|g" tmp/pot_node.service
+                sed -i "s|WHICH|$WHICH|g" tmp/pot_node.service
+                cp tmp/pot_node.service /etc/systemd/system/pot_node.service
+                systemctl --system daemon-reload
+        fi
+        rm -rf tmp/
+else
+        echo "PoT Node Sevice Installed - Skipping"
+fi
+
+
 
 if ! [ -f "$HOME/$USER/run/pot_node.pid" ]; then
 	echo "Starting PoT Node"
