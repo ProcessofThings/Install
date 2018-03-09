@@ -146,12 +146,23 @@ else
 	echo "cpanm Installed - Skipping"
 fi
 
-
-if ! [ -d "$HOME/$USER/pot_node" ]; then
-	echo "Installing PoT Node"
-	su - $USER -c "ipfs pin add $POTSERVICEHASH --progress"
-	su - $USER -c "mkdir run"
+if ! [ -d "$HOME/$USER/log" ]; then
+	echo "Create Log Folder"
 	su - $USER -c "mkdir log"
+else
+	echo "log Folder Exists - Skipping"
+fi
+
+if ! [ -d "$HOME/$USER/run" ]; then
+        echo "Create run Folder"
+        su - $USER -c "mkdir run"
+else
+        echo "run Folder Exists - Skipping"
+fi
+
+if ! [ -f "/etc/systemd/system/pot_node.service" ]; then
+	echo "Setup PoT Node Service"
+	su - $USER -c "ipfs pin add $POTSERVICEHASH --progress"
         if ! [ -d "tmp" ]; then
                 mkdir tmp
         fi
@@ -167,10 +178,21 @@ if ! [ -d "$HOME/$USER/pot_node" ]; then
 		systemctl --system daemon-reload
         fi
         rm -rf tmp/
-	su - $USER -c "git clone https://github.com/ProcessofThings/pot_node.git"
-	su - $USER -c "cd pot_node; cpanm --installdeps ." 
-	service pot_node start
 else
-	echo "PoT Node Installed - Skipping"
+	echo "PoT Node Sevice Installed - Skipping"
 fi
 
+if ! [ -d "$HOME/$USER/pot_node" ]; then
+        echo "Installing PoT Node"
+        su - $USER -c "git clone https://github.com/ProcessofThings/pot_node.git"
+        su - $USER -c "cd pot_node; cpanm --installdeps ."
+else
+        echo "PoT Node Installed - Skipping"
+fi
+
+if ! [ -f "$HOME/$USER/run/pot_node.pid" ]; then
+	echo "Starting PoT Node"
+	service pot_node start
+else 
+	echo "PoT Node Running - Skipping"
+fi
