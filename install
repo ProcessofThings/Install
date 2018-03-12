@@ -191,11 +191,19 @@ else
         echo "PoT Node Sevice Installed - Skipping"
 fi
 
-
-
 if ! [ -f "$HOME/$USER/run/pot_node.pid" ]; then
 	echo "Starting PoT Node"
 	service pot_node start
 else 
 	echo "PoT Node Running - Skipping"
+fi
+
+CRON=`su - $USER -c "crontab -l | grep -c '/system/check'"`
+if [ $CRON -eq 0 ]; then
+	echo "Setting Up Cron $CRON"
+	WHICH=`su - $USER -c "command -v curl"`
+	CMD="* * * * *  $WHICH http://127.0.0.1:9090/system/check"
+	su - $USER -c "crontab -l | { cat; echo \"$CMD\"; } | crontab -"
+else 
+	echo "Existing Cron - Skipping"
 fi
