@@ -12,7 +12,7 @@ PERLVER="5.24.3"
 
 ## Install basic requirements (-y install without asking)
 sudo apt-get update
-sudo apt-get -y install curl libperl-dev wget build-essential redis-server
+sudo apt-get -y install curl libperl-dev wget build-essential redis-server libv8-dev
 
 if ! [ -x "$(command -v ipfs)" ]; then
    if ! [ -x "$(command -v ipfs-update)" ]; then
@@ -55,6 +55,8 @@ if ! pgrep -x "ipfs" > /dev/null; then
 else 
 	echo "IPFS Already Running"
 fi
+
+
 
 if ! [ -f "/etc/systemd/system/ipfs.service" ]; then
 	echo "Setting Up Service"
@@ -160,6 +162,15 @@ if ! [ -d "$HOME/$USER/run" ]; then
 else
         echo "run Folder Exists - Skipping"
 fi
+
+if ! [ -f "$HOME/$USER/version.txt" ]; then
+        echo "Create Version File"
+	WHICH=`su - $USER -c "command -v touch"`
+        su - $USER -c "$WHICH $HOME/$USER/version.txt"
+else
+        echo "Version File Exists - Skipping"
+fi
+
 
 if ! [ -d "$HOME/$USER/pot_node" ]; then
         echo "Installing PoT Node"
