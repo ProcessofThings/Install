@@ -60,7 +60,7 @@ fi
 
 if ! [ -f "/etc/systemd/system/ipfs.service" ]; then
 	echo "Setting Up Service"
-	su - $USER -c "ipfs swarm connect /ip4/134.119.187.154/tcp/4001/ipfs/Qma6Mp7Eubx4FqGA1Jq4BGuKpojoZ7HCaxt4m1hA7jPzoA"
+	su - $USER -c "ipfs swarm connect /ip4/134.119.187.154/tcp/4001/ipfs/QmTjghiGzFMdbrWMePGWR4eXjr9KMQteBrrptCcGY83isw"
 	## Stores SERVICE file locally
 	su - $USER -c "ipfs pin add $SERVICEHASH --progress"
 	if ! [ -d "tmp" ]; then
